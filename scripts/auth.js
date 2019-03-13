@@ -1,3 +1,38 @@
+// listen to auth status changes
+auth.onAuthStateChanged(user =>{
+  //console.log(user)
+  if(user){
+    db.collection('guides').get().then(snapshot => {
+      //console.log(snapshot.docs)
+      setupGuides(snapshot.docs);
+      setupUI(snapshot.docs);
+      setupUI(user);
+    })
+  }else{
+    setupUI();
+    setupGuides([]);
+  }
+})
+
+// Create new guide
+const createForm = document.querySelector('#create-form');
+createForm.addEventListener('submit', (e)=> {
+  e.preventDefault();
+
+  //asyncronous method return a promise
+  db.collection('guides').add({
+    title: createForm['title'].value,
+    content: createForm['content'].value
+  }).then(() => {
+    //close modal and reset form
+    const modal = document.querySelector('#modal-create');
+    M.Modal.getInstance(modal).close();
+    createForm.reset();
+  }).catch(err => {
+    console.log(err.message);
+  })
+})
+
 // signup
 const signupForm = document.querySelector('#signup-form');
 signupForm.addEventListener('submit', (e) => {
@@ -20,9 +55,7 @@ signupForm.addEventListener('submit', (e) => {
 const logout = document.querySelector('#logout');
 logout.addEventListener('click', (e) => {
   e.preventDefault();
-  auth.signOut().then(() => {
-    console.log('user signed out');
-  })
+  auth.signOut();
 });
 
 // login
@@ -36,7 +69,7 @@ loginForm.addEventListener('submit', (e) => {
 
   // log the user in
   auth.signInWithEmailAndPassword(email, password).then((cred) => {
-    console.log(cred.user);
+    //console.log(cred.user);
     // close the signup modal & reset form
     const modal = document.querySelector('#modal-login');
     M.Modal.getInstance(modal).close();
